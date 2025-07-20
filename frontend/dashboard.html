@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AgriVoice</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen font-['Poppins']">
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <span class="text-white text-2xl">🌾</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">AgriVoice</h1>
+                </div>
+                <nav class="flex space-x-6">
+                    <a href="/" class="text-green-600 hover:text-green-700 font-medium">Home</a>
+                    <a href="/upload" class="text-green-600 hover:text-green-700 font-medium">Upload</a>
+                    <a href="/status" class="text-green-600 hover:text-green-700 font-medium">Status</a>
+                    <a href="/login" class="text-green-600 hover:text-green-700 font-medium">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Dashboard Header -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Welcome, Farmer!</h2>
+                <p class="text-xl text-gray-600">Manage your products and track your sales</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">📦</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">24</h3>
+                            <p class="text-gray-600">Total Products</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">💰</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">₹12,450</h3>
+                            <p class="text-gray-600">Total Sales</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">📈</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">8</h3>
+                            <p class="text-gray-600">This Month</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">⭐</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">4.8</h3>
+                            <p class="text-gray-600">Rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-12" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Quick Actions</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <button onclick="window.location.href='upload.html'" class="bg-gradient-to-r from-green-500 to-blue-500 text-white p-6 rounded-xl hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg text-center">
+                        <div class="text-3xl mb-3">🎤</div>
+                        <h4 class="font-semibold text-lg">Add Product</h4>
+                        <p class="text-sm opacity-90">Record your product details</p>
+                    </button>
+                    
+                    <button onclick="window.location.href='status.html'" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-6 rounded-xl hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-200 shadow-lg text-center">
+                        <div class="text-3xl mb-3">📊</div>
+                        <h4 class="font-semibold text-lg">View Status</h4>
+                        <p class="text-sm opacity-90">Check processing status</p>
+                    </button>
+                    
+                    <button class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 rounded-xl hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 transition-all duration-200 shadow-lg text-center">
+                        <div class="text-3xl mb-3">📱</div>
+                        <h4 class="font-semibold text-lg">Share</h4>
+                        <p class="text-sm opacity-90">Share your catalog</p>
+                    </button>
+                    
+                    <button class="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-6 rounded-xl hover:from-gray-600 hover:to-gray-700 transform hover:scale-105 transition-all duration-200 shadow-lg text-center">
+                        <div class="text-3xl mb-3">⚙️</div>
+                        <h4 class="font-semibold text-lg">Settings</h4>
+                        <p class="text-sm opacity-90">Manage your account</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Products -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-12" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Products</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-all duration-200">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xl">🍅</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Fresh Tomatoes</h4>
+                                <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-lg font-bold text-green-600">₹40/kg</p>
+                            <p class="text-gray-600 text-sm">50 kg available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-all duration-200">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xl">🥔</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Organic Potatoes</h4>
+                                <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-lg font-bold text-green-600">₹25/kg</p>
+                            <p class="text-gray-600 text-sm">100 kg available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-all duration-200">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xl">🫛</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Green Peas</h4>
+                                <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Low Stock</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-lg font-bold text-green-600">₹60/kg</p>
+                            <p class="text-gray-600 text-sm">30 kg available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Suggestions -->
+            <div class="bg-white rounded-2xl shadow-xl p-8" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">AI Suggestions</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-2xl">💡</span>
+                            <h4 class="font-semibold text-gray-800">Price Optimization</h4>
+                        </div>
+                        <p class="text-gray-600 text-sm">Consider increasing tomato prices by 10% based on market demand.</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl p-6 border-l-4 border-yellow-500">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-2xl">📅</span>
+                            <h4 class="font-semibold text-gray-800">Stock Management</h4>
+                        </div>
+                        <p class="text-gray-600 text-sm">Green peas stock is running low. Consider restocking soon.</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 border-l-4 border-green-500">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-2xl">🌾</span>
+                            <h4 class="font-semibold text-gray-800">New Product</h4>
+                        </div>
+                        <p class="text-gray-600 text-sm">Market analysis suggests high demand for organic carrots.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-lg font-medium">Made for Farmers ❤️ by AgriVoice</p>
+            <p class="text-gray-400 mt-2">Empowering Indian agriculture through voice technology</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html> 

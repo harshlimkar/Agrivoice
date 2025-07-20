@@ -1,141 +1,312 @@
-# 🌾 AgriVoice - Voice-Based Product Catalog for Indian Farmers
+# AgriVoice 🌾
 
-A full-stack voice-based product catalog application designed specifically for Indian farmers. Farmers can record their product descriptions in their native language, and the system will transcribe, generate AI descriptions, and store their products with intelligent suggestions.
+**Multilingual AI-powered voice product catalog for Indian farmers**
 
-## 🚀 Features
+AgriVoice is a comprehensive platform that enables Indian farmers to create product listings using voice input in their native language. The system uses AI to transcribe speech, extract product information, and generate intelligent suggestions for better sales.
 
-- **Voice Recording**: Record product descriptions in multiple Indian languages
-- **Speech Recognition**: Automatic transcription of voice to text
-- **AI-Powered Descriptions**: Generate enhanced product descriptions using Google Gemini AI
-- **Multi-language Support**: English, Hindi, Tamil, Telugu, Kannada, Malayalam, Gujarati, Marathi, Bengali, Odia, Punjabi
-- **Product Management**: Store and manage products with categories and pricing
-- **Status Tracking**: Track product status (pending, sold, expired, cancelled)
-- **Analytics**: View sales statistics and performance metrics
+## 🌟 Features
+
+- **Multilingual Voice Input**: Support for 11 Indian languages
+- **AI-Powered Processing**: Gemini AI for intelligent product analysis
+- **Smart Suggestions**: Price ranges, market recommendations, selling tips
+- **Real-time Database**: Supabase for reliable data storage
 - **Responsive UI**: Modern, mobile-friendly interface
+- **Voice Recording**: Browser-based audio capture and processing
 
-## 🛠️ Tech Stack
-
-### Backend
-- **FastAPI**: Modern Python web framework
-- **PostgreSQL**: Database (via Supabase)
-- **Google Gemini AI**: AI-powered description generation
-- **Speech Recognition**: Voice-to-text conversion
-- **Pydantic**: Data validation and serialization
-
-### Frontend
-- **HTML5/CSS3**: Modern responsive design
-- **JavaScript**: Interactive voice recording and UI
-- **Web Audio API**: Voice recording functionality
-- **Fetch API**: Backend communication
-
-### Database
-- **Supabase**: PostgreSQL database with real-time features
-- **Row Level Security**: Secure data access
-- **Full-text Search**: Advanced product search capabilities
-
-## 📁 Project Structure
+## 🗂️ Project Structure
 
 ```
-TECHY-CRACKS-main/
-├── backend/                 # FastAPI backend
-│   ├── main.py             # Main application entry point
-│   ├── routes/             # API route handlers
-│   ├── utils/              # Utility functions
-│   ├── models/             # Pydantic models
-│   └── requirements.txt    # Python dependencies
-├── frontend/               # Frontend files
-│   ├── index.html          # Main application page
-│   ├── register.html       # Farmer registration
-│   ├── upload.html         # Product upload
-│   ├── status.html         # Product status
-│   ├── assets/             # Images and fonts
-│   └── test.html           # API testing page
-├── supabase/               # Database schema
-│   └── schema.sql          # PostgreSQL schema
-├── .env                    # Environment variables
-├── .gitignore             # Git ignore rules
-└── README.md              # This file
+agri-voice-product-app/
+├── frontend/                    # Frontend application
+│   ├── index.html              # Main UI with voice input
+│   ├── login.html              # Farmer login/register page
+│   ├── dashboard.html          # Shows product listings and tips
+│   ├── app.js                  # Handles UI logic, API calls, language handling
+│   ├── voiceHandler.js         # Manages speech recognition & mic access
+│   ├── langSupport.js          # Handles multilingual text rendering
+│   ├── styles/
+│   │   ├── main.css           # Animations, alignment, colors, responsiveness
+│   │   └── theme.css          # Theme settings per language/region
+│   └── assets/
+│       ├── logo.svg
+│       ├── icons/
+│       └── illustrations/
+│
+├── backend/                    # Python FastAPI backend
+│   ├── main.py                # FastAPI app for routing and integration
+│   ├── whisper_transcribe.py  # Converts voice to text (multilingual)
+│   ├── parse_product.py       # Extracts product, quantity, price
+│   ├── gemini_ai.py          # Gemini API call for suggestions & description
+│   ├── translate_module.py    # Optional: Translate output for language consistency
+│   ├── supabase_connector.py  # Handles storing/fetching data to/from Supabase
+│   └── utils/
+│       └── helpers.py         # Common helper functions
+│
+├── supabase_config/           # Supabase setup
+│   ├── schema.sql             # Supabase table schema
+│   └── setup_supabase.sh      # Script to initialize project
+│
+├── .env                       # Gemini + Supabase keys
+├── requirements.txt           # Python dependencies
+├── README.md                 # Project overview
+└── LICENSE
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.8+
-- Node.js (optional, for development)
+- Node.js 14+ (for Supabase CLI)
 - Supabase account
-- Google Gemini AI API key
+- Gemini AI API key
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/agrivoice.git
-   cd agrivoice
-   ```
+```bash
+git clone <repository-url>
+cd agri-voice-product-app
+```
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
+2. **Set up Supabase**
+```bash
+cd supabase_config
+chmod +x setup_supabase.sh
+./setup_supabase.sh
+```
 
-3. **Install backend dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+3. **Install Python dependencies**
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-4. **Set up database**
-   - Create a Supabase project
-   - Run the schema.sql file in your Supabase SQL editor
-   - Update your .env file with Supabase credentials
+4. **Configure environment variables**
+```bash
+cp env.example .env
+# Edit .env with your API keys
+```
 
 5. **Start the backend server**
-   ```bash
-   python main.py
-   # or
-   python -m uvicorn main:app --reload
-   ```
+```bash
+cd backend
+python start_server.py
+```
 
-6. **Open the frontend**
-   - Open `frontend/index.html` in your browser
-   - Or serve it using a local server
+6. **Start the frontend**
+```bash
+cd frontend
+python -m http.server 3000
+```
+
+7. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
 
 ## 🔧 Configuration
 
 ### Environment Variables
-Create a `.env` file in the root directory:
+
+Create a `.env` file in the backend directory:
 
 ```env
-# Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_anon_key
+# Gemini AI API Key
+GEMINI_API_KEY=your_gemini_api_key_here
 
-# Google Gemini AI
-GEMINI_API_KEY=your_gemini_api_key
+# Supabase Configuration
+SUPABASE_URL=your_supabase_project_url_here
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
 
 # Server Configuration
-HOST=127.0.0.1
+HOST=0.0.0.0
 PORT=8000
+DEBUG=True
 ```
 
-### API Endpoints
+### Supported Languages
 
-- `GET /` - Health check
-- `POST /transcribe` - Transcribe voice to text
-- `POST /generate-description` - Generate AI description
-- `POST /store` - Store product in database
-- `POST /check-status` - Check product status
-- `GET /categories` - Get product categories
-- `GET /test` - Test endpoint
+| Code | Language | Example |
+|------|----------|---------|
+| `en` | English | "I have 10 kg of tomatoes" |
+| `hi` | Hindi | "मेरे पास 10 किलो टमाटर हैं" |
+| `ta` | Tamil | "என்னிடம் 10 கிலோ தக்காளிகள் உள்ளன" |
+| `te` | Telugu | "నా వద్ద 10 కిలోల టమాటాలు ఉన్నాయి" |
+| `kn` | Kannada | "ನನ್ನ ಬಳಿ 10 ಕಿಲೋ ಟೊಮೇಟೊಗಳಿವೆ" |
+| `ml` | Malayalam | "എന്റെ കൈയിൽ 10 കിലോ തക്കാളികൾ ഉണ്ട്" |
+| `gu` | Gujarati | "મારી પાસે 10 કિલો ટામેટા છે" |
+| `mr` | Marathi | "माझ्याकडे 10 किलो टोमॅटो आहेत" |
+| `bn` | Bengali | "আমার কাছে 10 কিলো টমেটো আছে" |
+| `or` | Odia | "ମୋ ପାଖରେ 10 କିଲୋ ଟମାଟୋ ଅଛି" |
+| `pa` | Punjabi | "ਮੇਰੇ ਕੋਲ 10 ਕਿਲੋ ਟਮਾਟਰ ਹਨ" |
 
-## 🎯 Usage
+## 🔄 Workflow
 
-1. **Register**: Farmers register with their mobile number and preferred language
-2. **Record**: Record product description in their native language
-3. **Review**: Review transcribed text and AI-generated description
-4. **Store**: Save product with pricing and category information
-5. **Track**: Monitor product status and sales analytics
+```
+┌─────────────────────────────┐
+│     Farmer Voice Input      │
+│ (e.g., "I have 10kg tomato")│
+└────────────┬────────────────┘
+             │
+             ▼
+┌──────────────────────────────────────┐
+│  Speech-to-Text Conversion Module     │
+│ (Google STT / Whisper)                │
+└────────────┬──────────────────────────┘
+             │
+             ▼
+┌────────────────────────────────────────────┐
+│     Text Parsing & Entity Extraction       │
+│  → Product: Tomato                         │
+│  → Quantity: 10kg                          │
+│  → Price: ₹20/kg                           │
+│  → Language: Tamil                         │
+└────────────┬───────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────┐
+│   Store Parsed Data in Supabase │
+└────────────┬────────────────────┘
+             │
+             ▼
+┌────────────────────────────────────────────────────┐
+│      Send Prompt to Gemini AI Module               │
+│  → Generate description, min/max price, tips       │
+│  → Translate response to original input language   │
+└────────────┬───────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────┐
+│   Store Gemini Output in Supabase DB         │
+└────────────┬────────────────────────────────┘
+             │
+             ▼
+┌───────────────────────────────────────────────┐
+│   Return Response to Frontend (Web App)       │
+│ → Translated Product Description              │
+│ → Min/Max Price Suggestions                   │
+│ → Selling Tips (e.g., market, time, etc.)     │
+└────────────┬──────────────────────────────────┘
+             │
+             ▼
+┌───────────────────────────────────────────────────────┐
+│     Optional Check: Product Not Sold After X Time     │
+│  → Re-engage Gemini for improvement suggestions       │
+└───────────────────────────────────────────────────────┘
+```
+
+## 🛠️ API Endpoints
+
+### Core Endpoints
+
+- `POST /api/complete-voice-process` - Complete voice processing workflow
+- `POST /api/store-product` - Store product information
+- `POST /api/check-status` - Check product status by mobile number
+- `POST /api/register` - Register new farmer
+- `POST /api/login` - Farmer login
+- `GET /api/health` - Health check
+
+### Demo Endpoints
+
+- `GET /` - Serve frontend
+- `GET /api/health` - System status
+- `GET /docs` - API documentation
+
+## 🎨 UI Features
+
+- **Responsive Design**: Works on mobile and desktop
+- **Language Themes**: Different color schemes per language
+- **Voice Recording**: Real-time audio capture
+- **Product Preview**: Live preview of extracted information
+- **Status Tracking**: Monitor product sales status
+- **AI Suggestions**: Intelligent recommendations
+
+## 🔒 Security
+
+- **Row Level Security**: Supabase RLS policies
+- **Input Validation**: Comprehensive data validation
+- **Error Handling**: Graceful error management
+- **CORS Configuration**: Proper cross-origin settings
+
+## 🧪 Testing
+
+### Backend Testing
+```bash
+cd backend
+python -m pytest tests/
+```
+
+### Frontend Testing
+```bash
+cd frontend
+npm test
+```
+
+### API Testing
+```bash
+# Health check
+curl http://localhost:8000/api/health
+
+# Voice processing (demo)
+curl -X POST http://localhost:8000/api/complete-voice-process \
+  -H "Content-Type: application/json" \
+  -d '{"language": "en", "transcribed_text": "I have 10 kg of tomatoes"}'
+```
+
+## 📊 Database Schema
+
+### Farmers Table
+```sql
+CREATE TABLE farmers (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    language VARCHAR(5) DEFAULT 'en',
+    village_city VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Products Table
+```sql
+CREATE TABLE products (
+    id UUID PRIMARY KEY,
+    farmer_mobile VARCHAR(15) NOT NULL,
+    product_info JSONB NOT NULL,
+    ai_suggestions JSONB NOT NULL,
+    transcribed_text TEXT NOT NULL,
+    language VARCHAR(5) NOT NULL,
+    audio_url TEXT,
+    status VARCHAR(20) DEFAULT 'pending',
+    improvement_suggestions JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+## 🚀 Deployment
+
+### Backend Deployment (Railway/Heroku)
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Deploy to Railway
+railway login
+railway init
+railway up
+```
+
+### Frontend Deployment (Vercel/Netlify)
+```bash
+# Build and deploy
+npm run build
+# Upload dist/ folder to your hosting provider
+```
 
 ## 🤝 Contributing
 
@@ -151,10 +322,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Google Gemini AI for intelligent text generation
-- Supabase for database infrastructure
-- FastAPI for the robust backend framework
-- Indian farmers for inspiration and feedback
+- **Google Gemini AI** for intelligent text generation
+- **Supabase** for database and authentication
+- **FastAPI** for the robust backend framework
+- **Indian Farmers** for inspiration and feedback
 
 ## 📞 Support
 

@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Status - AgriVoice</title>
+    <title>Processing Status - AgriVoice</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
 </head>
 <body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen font-['Poppins']">
     <!-- Header -->
@@ -20,10 +20,12 @@
                     </div>
                     <h1 class="text-2xl font-bold text-gray-800">AgriVoice</h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="index.html" class="text-green-600 hover:text-green-700 font-medium">Home</a>
-                    <a href="upload.html" class="text-green-600 hover:text-green-700 font-medium">Upload</a>
-                </div>
+                <nav class="flex space-x-6">
+                    <a href="/" class="text-green-600 hover:text-green-700 font-medium">Home</a>
+                    <a href="/dashboard" class="text-green-600 hover:text-green-700 font-medium">Dashboard</a>
+                    <a href="/upload" class="text-green-600 hover:text-green-700 font-medium">Upload</a>
+                    <a href="/login" class="text-green-600 hover:text-green-700 font-medium">Logout</a>
+                </nav>
             </div>
         </div>
     </header>
@@ -32,137 +34,175 @@
     <main class="container mx-auto px-4 py-8">
         <div class="max-w-4xl mx-auto">
             <!-- Status Header -->
-            <div class="text-center mb-8" data-aos="fade-up">
-                <h2 class="text-4xl font-bold text-gray-800 mb-4">📊 Product Status</h2>
-                <p class="text-xl text-gray-600">Track your products and get AI-powered suggestions</p>
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Processing Status</h2>
+                <p class="text-xl text-gray-600">Track your voice input processing</p>
             </div>
 
-            <!-- Mobile Number Input -->
+            <!-- Status Overview -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🎤</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Voice Input</h3>
+                        <p id="voiceStatus" class="text-green-600 font-medium">Processing...</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🤖</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">AI Processing</h3>
+                        <p id="aiStatus" class="text-yellow-600 font-medium">Waiting...</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">💾</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Database</h3>
+                        <p id="dbStatus" class="text-gray-600 font-medium">Pending...</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">✅</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Complete</h3>
+                        <p id="completeStatus" class="text-gray-400 font-medium">Not ready</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
             <div class="bg-white rounded-2xl shadow-xl p-8 mb-8" data-aos="fade-up">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Enter Your Mobile Number</h3>
-                <div class="max-w-md mx-auto">
-                    <div class="flex space-x-4">
-                        <input type="tel" 
-                               id="mobileNumber" 
-                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                               placeholder="Enter your 10-digit mobile number"
-                               pattern="[0-9]{10}">
-                        <button id="checkStatusBtn" 
-                                class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg">
-                            Check Status
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Overall Progress</h3>
+                <div class="max-w-2xl mx-auto">
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                        <div class="bg-gradient-to-r from-green-500 to-blue-500 h-4 rounded-full transition-all duration-500" id="progressFill" style="width: 25%"></div>
+                    </div>
+                    <p class="text-center text-gray-600 font-medium" id="progressText">25% Complete</p>
+                </div>
+            </div>
+
+            <!-- Processing Details -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Processing Details</h3>
+                <div class="max-w-2xl mx-auto space-y-4">
+                    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span class="font-semibold text-gray-700">Input Language:</span>
+                        <span class="text-gray-900" id="inputLanguage">Hindi</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span class="font-semibold text-gray-700">Processing Time:</span>
+                        <span class="text-gray-900" id="processingTime">2.3 seconds</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span class="font-semibold text-gray-700">Confidence Score:</span>
+                        <span class="text-gray-900" id="confidenceScore">95%</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                        <span class="font-semibold text-gray-700">Extracted Data:</span>
+                        <span class="text-gray-900 text-sm" id="extractedData">Product: Tomatoes, Quantity: 50kg, Price: ₹40/kg</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-8" data-aos="fade-up">
+                <div class="flex space-x-4 justify-center">
+                    <button id="refreshStatus" class="bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 px-8 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        Refresh Status
+                    </button>
+                    <button id="viewProduct" class="bg-gray-200 text-gray-700 py-3 px-8 rounded-lg font-semibold hover:bg-gray-300 transform hover:scale-105 transition-all duration-200" disabled>
+                        View Product
+                    </button>
+                    <button id="addAnother" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-8 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        Add Another Product
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Messages -->
+            <div id="errorSection" class="bg-red-50 border border-red-200 rounded-2xl p-8 mb-8 hidden" data-aos="fade-up">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-red-600 text-2xl">⚠️</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-red-800 mb-2">Processing Error</h3>
+                    <p id="errorMessage" class="text-red-600 mb-6">There was an issue processing your voice input. Please try again.</p>
+                    <button id="retryButton" class="bg-red-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-red-700 transform hover:scale-105 transition-all duration-200">
+                        Retry
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div id="successSection" class="bg-green-50 border border-green-200 rounded-2xl p-8 mb-8 hidden" data-aos="fade-up">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-green-600 text-2xl">✅</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-green-800 mb-2">Processing Complete!</h3>
+                    <p class="text-green-600 mb-6">Your product has been successfully processed and saved to the database.</p>
+                    <div class="flex space-x-4 justify-center">
+                        <button id="viewDetails" class="bg-green-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-green-700 transform hover:scale-105 transition-all duration-200">
+                            View Details
+                        </button>
+                        <button id="addMore" class="bg-gray-200 text-gray-700 py-3 px-8 rounded-lg font-semibold hover:bg-gray-300 transform hover:scale-105 transition-all duration-200">
+                            Add More Products
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Summary -->
-            <div id="statusSummary" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-8" data-aos="fade-up">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Status Summary</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center p-6 bg-green-50 rounded-lg">
-                        <div class="text-4xl mb-2">✅</div>
-                        <h4 class="text-lg font-semibold text-green-800">Sold Products</h4>
-                        <p id="soldCount" class="text-3xl font-bold text-green-600">0</p>
-                    </div>
-                    <div class="text-center p-6 bg-yellow-50 rounded-lg">
-                        <div class="text-4xl mb-2">⏳</div>
-                        <h4 class="text-lg font-semibold text-yellow-800">Pending Products</h4>
-                        <p id="pendingCount" class="text-3xl font-bold text-yellow-600">0</p>
-                    </div>
-                    <div class="text-center p-6 bg-blue-50 rounded-lg">
-                        <div class="text-4xl mb-2">📈</div>
-                        <h4 class="text-lg font-semibold text-blue-800">Total Products</h4>
-                        <p id="totalCount" class="text-3xl font-bold text-blue-600">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Products List -->
-            <div id="productsList" class="hidden space-y-6">
-                <!-- Products will be dynamically loaded here -->
-            </div>
-
-            <!-- No Products Message -->
-            <div id="noProducts" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center" data-aos="fade-up">
-                <div class="text-6xl mb-4">📦</div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">No Products Found</h3>
-                <p class="text-gray-600 mb-6">You haven't uploaded any products yet. Start by adding your first product!</p>
-                <a href="upload.html" 
-                   class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg inline-block">
-                    Upload Your First Product
-                </a>
-            </div>
-
-            <!-- AI Suggestions Section -->
-            <div id="aiSuggestions" class="hidden bg-white rounded-2xl shadow-xl p-8 mt-8" data-aos="fade-up">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">🤖 AI Suggestions</h3>
-                <div id="suggestionsContent" class="space-y-4">
-                    <!-- Suggestions will be dynamically loaded here -->
-                </div>
-            </div>
-
             <!-- Tips Section -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mt-8" data-aos="fade-up">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">💡 Tips for Better Sales</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">📸</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Add Quality Photos</h4>
-                                <p class="text-gray-600 text-sm">High-quality images attract more customers</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">💰</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Competitive Pricing</h4>
-                                <p class="text-gray-600 text-sm">Research market prices and offer competitive rates</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">📝</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Detailed Descriptions</h4>
-                                <p class="text-gray-600 text-sm">Include quality, freshness, and origin details</p>
-                            </div>
+            <div class="bg-white rounded-2xl shadow-xl p-8" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Processing Tips</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="flex items-start space-x-4">
+                        <span class="text-2xl">⏱️</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Processing Time</h4>
+                            <p class="text-gray-600 text-sm">Voice processing typically takes 2-5 seconds</p>
                         </div>
                     </div>
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">⏰</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Quick Response</h4>
-                                <p class="text-gray-600 text-sm">Respond to customer inquiries promptly</p>
-                            </div>
+                    <div class="flex items-start space-x-4">
+                        <span class="text-2xl">🎯</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Accuracy</h4>
+                            <p class="text-gray-600 text-sm">Higher confidence scores mean better accuracy</p>
                         </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">🚚</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Reliable Delivery</h4>
-                                <p class="text-gray-600 text-sm">Ensure timely and safe product delivery</p>
-                            </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <span class="text-2xl">🔄</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Refresh Status</h4>
+                            <p class="text-gray-600 text-sm">Click refresh to check latest status</p>
                         </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-2xl">⭐</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Customer Reviews</h4>
-                                <p class="text-gray-600 text-sm">Encourage satisfied customers to leave reviews</p>
-                            </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <span class="text-2xl">📱</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Mobile Friendly</h4>
+                            <p class="text-gray-600 text-sm">Works perfectly on mobile devices</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-8 text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
-            <p class="text-gray-700">Loading your products...</p>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8 mt-16">
@@ -173,6 +213,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="js/main.js"></script>
+    <script src="app.js"></script>
+    <script src="statusHandler.js"></script>
 </body>
 </html> 

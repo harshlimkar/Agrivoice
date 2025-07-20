@@ -1,50 +1,52 @@
 #!/usr/bin/env python3
 """
-Alternative server startup script
+AgriVoice Backend Server Startup Script
+Starts the FastAPI server with proper configuration
 """
 
 import uvicorn
-import sys
 import os
+import sys
+from pathlib import Path
 
-def start_server():
-    """Start the AgriVoice server"""
-    print("🌾 Starting AgriVoice API Server...")
-    print("=" * 50)
-    print("📱 Open http://localhost:8000 in your browser")
-    print("📚 API Docs: http://localhost:8000/docs")
-    print("🛑 Press Ctrl+C to stop")
-    print("\n" + "="*50)
+# Add the backend directory to Python path
+backend_dir = Path(__file__).parent
+sys.path.insert(0, str(backend_dir))
+
+def main():
+    """Start the AgriVoice backend server"""
+    
+    # Load environment variables
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Get configuration from environment
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    debug = os.getenv("DEBUG", "False").lower() == "true"
+    
+    print("🌾 Starting AgriVoice Backend Server...")
+    print("=" * 60)
+    print(f"📍 Server URL: http://{host}:{port}")
+    print(f"🔧 Debug Mode: {debug}")
+    print(f"📚 API Docs: http://{host}:{port}/docs")
+    print(f"🔍 Health Check: http://{host}:{port}/api/health")
+    print("=" * 60)
     
     try:
-        # Import the app
-        from main import app
-        
-        # Start server
+        # Start the server
         uvicorn.run(
-            app,
-            host="127.0.0.1",
-            port=8000,
-            reload=False,
-            log_level="info"
+            "main:app",
+            host=host,
+            port=port,
+            reload=debug,
+            log_level="info" if debug else "warning"
         )
     except KeyboardInterrupt:
         print("\n🛑 Server stopped by user")
     except Exception as e:
-        print(f"❌ Error: {e}")
-        print("💡 Trying alternative method...")
-        try:
-            # Alternative method
-            uvicorn.run(
-                "main:app",
-                host="127.0.0.1",
-                port=8000,
-                reload=False,
-                log_level="info"
-            )
-        except Exception as e2:
-            print(f"❌ Alternative method also failed: {e2}")
-            print("💡 Please check if port 8000 is available")
+        print(f"❌ Error starting server: {e}")
+        print("💡 Check if port is available or try a different port")
 
 if __name__ == "__main__":
-    start_server() 
+    main() 

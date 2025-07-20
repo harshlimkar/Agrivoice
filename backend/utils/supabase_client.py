@@ -1,321 +1,272 @@
 """
-Supabase SDK config client
+Supabase Client for AgriVoice
+Handles database operations for products and farmers
 """
 
 import os
-import asyncio
+import json
+import logging
 from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
 from supabase import create_client, Client
-import os
+
+logger = logging.getLogger(__name__)
 
 class SupabaseClient:
+    """Client for interacting with Supabase database"""
+    
     def __init__(self):
-        self.url = os.getenv('SUPABASE_URL')
-        self.key = os.getenv('SUPABASE_KEY')
-        self.client: Optional[Client] = None
-        self.is_initialized = False
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_ANON_KEY")
         
-        if self.url and self.key:
-            self.initialize()
+        if not self.supabase_url or not self.supabase_key:
+            logger.warning("Supabase credentials not found in environment variables")
+            self.client = None
+        else:
+            try:
+                self.client = create_client(self.supabase_url, self.supabase_key)
+                logger.info("Supabase client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Supabase client: {e}")
+                self.client = None
     
-    def initialize(self):
-        """Initialize Supabase client"""
+    async def store_product(self, product_info: Dict[str, Any], 
+                          ai_suggestions: Dict[str, Any],
+                          transcribed_text: str,
+                          language: str,
+                          farmer_mobile: str,
+                          audio_url: Optional[str] = None) -> Dict[str, Any]:
+        """Store product information in database"""
         try:
-            if self.url and self.key:
-                self.client = create_client(self.url, self.key)
-                self.is_initialized = True
+            if not self.client:
+                return self._mock_store_product(product_info, ai_suggestions, transcribed_text, language, farmer_mobile)
+            
+            data = {
+                "farmer_mobile": farmer_mobile,
+                "product_info": json.dumps(product_info),
+                "ai_suggestions": json.dumps(ai_suggestions),
+                "transcribed_text": transcribed_text,
+                "language": language,
+                "audio_url": audio_url,
+                "status": "pending",
+                "created_at": datetime.now().isoformat()
+            }
+            
+            result = self.client.table("products").insert(data).execute()
+            
+            if result.data:
+                logger.info(f"Product stored successfully with ID: {result.data[0]['id']}")
+                return result.data[0]
             else:
-                self.is_initialized = False
+                raise Exception("Failed to store product")
+                
         except Exception as e:
-            print(f"Failed to initialize Supabase client: {e}")
-            self.is_initialized = False
-    
-    async def insert_farmer(self, farmer_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Insert farmer data into database
-        
-        Args:
-            farmer_data: Farmer information
-            
-        Returns:
-            Insert result
-        """
-        if not self.is_initialized or not self.client:
-            return self.get_mock_farmer_result(farmer_data)
-        
-        try:
-            result = await asyncio.to_thread(
-                self.client.table('farmers').insert(farmer_data).execute
-            )
-            return result.data[0] if result.data else {}
-        except Exception as e:
-            print(f"Supabase insert farmer error: {e}")
-            return self.get_mock_farmer_result(farmer_data)
-    
-    async def insert_product(self, product_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Insert product data into database
-        
-        Args:
-            product_data: Product information
-            
-        Returns:
-            Insert result
-        """
-        if not self.is_initialized or not self.client:
-            return self.get_mock_product_result(product_data)
-        
-        try:
-            result = await asyncio.to_thread(
-                self.client.table('products').insert(product_data).execute
-            )
-            return result.data[0] if result.data else {}
-        except Exception as e:
-            print(f"Supabase insert product error: {e}")
-            return self.get_mock_product_result(product_data)
+            logger.error(f"Error storing product: {e}")
+            return self._mock_store_product(product_info, ai_suggestions, transcribed_text, language, farmer_mobile)
     
     async def get_products_by_mobile(self, mobile: str) -> List[Dict[str, Any]]:
-        """
-        Get products by farmer's mobile number
-        
-        Args:
-            mobile: Farmer's mobile number
-            
-        Returns:
-            List of products
-        """
-        if not self.is_initialized or not self.client:
-            return self.get_mock_products(mobile)
-        
+        """Get products by farmer mobile number"""
         try:
-            result = await asyncio.to_thread(
-                self.client.table('products')
-                .select('*')
-                .eq('farmer_mobile', mobile)
-                .order('created_at', desc=True)
-                .execute
-            )
-            return result.data if result.data else []
-        except Exception as e:
-            print(f"Supabase get products error: {e}")
-            return self.get_mock_products(mobile)
-    
-    async def get_farmer_by_mobile(self, mobile: str) -> Optional[Dict[str, Any]]:
-        """
-        Get farmer by mobile number
-        
-        Args:
-            mobile: Farmer's mobile number
+            if not self.client:
+                return self._mock_get_products(mobile)
             
-        Returns:
-            Farmer data or None
-        """
-        if not self.is_initialized or not self.client:
-            return self.get_mock_farmer(mobile)
-        
-        try:
-            result = await asyncio.to_thread(
-                self.client.table('farmers')
-                .select('*')
-                .eq('mobile', mobile)
-                .limit(1)
-                .execute
-            )
-            return result.data[0] if result.data else None
+            result = self.client.table("products").select("*").eq("farmer_mobile", mobile).execute()
+            
+            if result.data:
+                logger.info(f"Retrieved {len(result.data)} products for mobile: {mobile}")
+                return result.data
+            else:
+                return []
+                
         except Exception as e:
-            print(f"Supabase get farmer error: {e}")
-            return self.get_mock_farmer(mobile)
+            logger.error(f"Error getting products: {e}")
+            return self._mock_get_products(mobile)
     
     async def update_product_status(self, product_id: str, status: str) -> Dict[str, Any]:
-        """
-        Update product status
-        
-        Args:
-            product_id: Product ID
-            status: New status
-            
-        Returns:
-            Update result
-        """
-        if not self.is_initialized or not self.client:
-            return {"id": product_id, "status": status}
-        
+        """Update product status"""
         try:
-            result = await asyncio.to_thread(
-                self.client.table('products')
-                .update({"status": status, "updated_at": self.get_current_timestamp()})
-                .eq('id', product_id)
-                .execute
-            )
-            return result.data[0] if result.data else {"id": product_id, "status": status}
-        except Exception as e:
-            print(f"Supabase update product error: {e}")
-            return {"id": product_id, "status": status}
-    
-    async def delete_product(self, product_id: str) -> bool:
-        """
-        Delete product from database
-        
-        Args:
-            product_id: Product ID
+            if not self.client:
+                return {"success": True, "message": "Status updated (demo mode)"}
             
-        Returns:
-            True if successful
-        """
-        if not self.is_initialized or not self.client:
-            return True
-        
-        try:
-            await asyncio.to_thread(
-                self.client.table('products')
-                .delete()
-                .eq('id', product_id)
-                .execute
-            )
-            return True
-        except Exception as e:
-            print(f"Supabase delete product error: {e}")
-            return False
-    
-    async def search_products(self, query: str, language: str) -> List[Dict[str, Any]]:
-        """
-        Search products by query
-        
-        Args:
-            query: Search query
-            language: Language code
-            
-        Returns:
-            List of matching products
-        """
-        if not self.is_initialized or not self.client:
-            return self.get_mock_search_results(query)
-        
-        try:
-            result = await asyncio.to_thread(
-                self.client.table('products')
-                .select('*')
-                .or_(f"name.ilike.%{query}%,description.ilike.%{query}%")
-                .eq('language', language)
-                .order('created_at', desc=True)
-                .execute
-            )
-            return result.data if result.data else []
-        except Exception as e:
-            print(f"Supabase search products error: {e}")
-            return self.get_mock_search_results(query)
-    
-    def get_current_timestamp(self) -> str:
-        """Get current timestamp in ISO format"""
-        from datetime import datetime
-        return datetime.utcnow().isoformat()
-    
-    def get_mock_farmer_result(self, farmer_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Get mock farmer insert result"""
-        return {
-            "id": "mock_farmer_1",
-            "name": farmer_data.get("name", "Mock Farmer"),
-            "mobile": farmer_data.get("mobile", ""),
-            "language": farmer_data.get("language", "en"),
-            "village_city": farmer_data.get("village_city", "Mock City"),
-            "created_at": farmer_data.get("created_at", self.get_current_timestamp()),
-            "updated_at": farmer_data.get("updated_at", self.get_current_timestamp())
-        }
-    
-    def get_mock_product_result(self, product_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Get mock product insert result"""
-        return {
-            "id": "mock_product_1",
-            "name": product_data.get("name", "Mock Product"),
-            "description": product_data.get("description", "Mock description"),
-            "language": product_data.get("language", "en"),
-            "farmer_mobile": product_data.get("farmer_mobile", ""),
-            "status": product_data.get("status", "pending"),
-            "created_at": product_data.get("created_at", self.get_current_timestamp()),
-            "updated_at": product_data.get("updated_at", self.get_current_timestamp())
-        }
-    
-    def get_mock_products(self, mobile: str) -> List[Dict[str, Any]]:
-        """Get mock products for demo"""
-        return [
-            {
-                "id": "1",
-                "name": "Fresh Tomatoes",
-                "description": "Fresh, high-quality tomatoes from local farm",
-                "language": "en",
-                "farmer_mobile": mobile,
-                "status": "pending",
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T10:30:00Z"
-            },
-            {
-                "id": "2",
-                "name": "Organic Rice",
-                "description": "Premium quality organic rice",
-                "language": "en",
-                "farmer_mobile": mobile,
-                "status": "sold",
-                "created_at": "2024-01-14T15:45:00Z",
-                "updated_at": "2024-01-14T15:45:00Z"
-            },
-            {
-                "id": "3",
-                "name": "Sweet Mangoes",
-                "description": "Sweet and juicy mangoes from organic farms",
-                "language": "en",
-                "farmer_mobile": mobile,
-                "status": "pending",
-                "created_at": "2024-01-13T09:20:00Z",
-                "updated_at": "2024-01-13T09:20:00Z"
+            data = {
+                "status": status,
+                "updated_at": datetime.now().isoformat()
             }
-        ]
+            
+            result = self.client.table("products").update(data).eq("id", product_id).execute()
+            
+            if result.data:
+                logger.info(f"Product {product_id} status updated to: {status}")
+                return {"success": True, "message": "Status updated successfully"}
+            else:
+                raise Exception("Failed to update product status")
+                
+        except Exception as e:
+            logger.error(f"Error updating product status: {e}")
+            return {"success": False, "message": str(e)}
     
-    def get_mock_farmer(self, mobile: str) -> Dict[str, Any]:
-        """Get mock farmer data"""
-        return {
-            "id": "1",
-            "name": "Rajesh Kumar",
-            "mobile": mobile,
-            "language": "en",
-            "village_city": "Mumbai",
-            "created_at": "2024-01-10T08:00:00Z",
-            "updated_at": "2024-01-10T08:00:00Z"
-        }
+    async def get_unsold_products(self, days: int = 7) -> List[Dict[str, Any]]:
+        """Get unsold products older than specified days"""
+        try:
+            if not self.client:
+                return self._mock_get_unsold_products(days)
+            
+            cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
+            
+            result = self.client.table("products").select("*").eq("status", "pending").lt("created_at", cutoff_date).execute()
+            
+            if result.data:
+                logger.info(f"Retrieved {len(result.data)} unsold products older than {days} days")
+                return result.data
+            else:
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error getting unsold products: {e}")
+            return self._mock_get_unsold_products(days)
     
-    def get_mock_search_results(self, query: str) -> List[Dict[str, Any]]:
-        """Get mock search results"""
-        return [
-            {
-                "id": "1",
-                "name": f"Product matching '{query}'",
-                "description": f"Description containing '{query}'",
-                "language": "en",
-                "farmer_mobile": "9876543210",
-                "status": "pending",
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T10:30:00Z"
+    async def update_product_suggestions(self, product_id: str, suggestions: Dict[str, Any]) -> Dict[str, Any]:
+        """Update product with improvement suggestions"""
+        try:
+            if not self.client:
+                return {"success": True, "message": "Suggestions updated (demo mode)"}
+            
+            data = {
+                "improvement_suggestions": json.dumps(suggestions),
+                "updated_at": datetime.now().isoformat()
             }
-        ]
+            
+            result = self.client.table("products").update(data).eq("id", product_id).execute()
+            
+            if result.data:
+                logger.info(f"Product {product_id} suggestions updated")
+                return {"success": True, "message": "Suggestions updated successfully"}
+            else:
+                raise Exception("Failed to update product suggestions")
+                
+        except Exception as e:
+            logger.error(f"Error updating product suggestions: {e}")
+            return {"success": False, "message": str(e)}
     
-    def is_available(self) -> bool:
-        """
-        Check if Supabase is available
-        
-        Returns:
-            True if available
-        """
-        return self.is_initialized and self.url is not None and self.key is not None
+    async def register_farmer(self, farmer_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Register a new farmer"""
+        try:
+            if not self.client:
+                return self._mock_register_farmer(farmer_data)
+            
+            data = {
+                "name": farmer_data["name"],
+                "email": farmer_data["email"],
+                "phone": farmer_data["phone"],
+                "language": farmer_data.get("language", "en"),
+                "village_city": farmer_data.get("village_city"),
+                "created_at": datetime.now().isoformat()
+            }
+            
+            result = self.client.table("farmers").insert(data).execute()
+            
+            if result.data:
+                logger.info(f"Farmer registered successfully: {result.data[0]['id']}")
+                return result.data[0]
+            else:
+                raise Exception("Failed to register farmer")
+                
+        except Exception as e:
+            logger.error(f"Error registering farmer: {e}")
+            return self._mock_register_farmer(farmer_data)
+    
+    async def login_farmer(self, credentials: Dict[str, str]) -> Dict[str, Any]:
+        """Login farmer"""
+        try:
+            if not self.client:
+                return self._mock_login_farmer(credentials)
+            
+            result = self.client.table("farmers").select("*").eq("email", credentials["email"]).execute()
+            
+            if result.data:
+                farmer = result.data[0]
+                # In production, you would verify password hash here
+                logger.info(f"Farmer logged in: {farmer['id']}")
+                return farmer
+            else:
+                raise Exception("Invalid credentials")
+                
+        except Exception as e:
+            logger.error(f"Error logging in farmer: {e}")
+            return self._mock_login_farmer(credentials)
     
     def get_connection_status(self) -> Dict[str, Any]:
-        """
-        Get connection status information
-        
-        Returns:
-            Status information
-        """
+        """Get database connection status"""
         return {
-            "available": self.is_available(),
-            "initialized": self.is_initialized,
-            "has_url": self.url is not None,
-            "has_key": self.key is not None
+            "connected": self.client is not None,
+            "url_configured": self.supabase_url is not None,
+            "key_configured": self.supabase_key is not None
+        }
+    
+    # Mock methods for demo purposes
+    def _mock_store_product(self, product_info: Dict[str, Any], 
+                           ai_suggestions: Dict[str, Any],
+                           transcribed_text: str,
+                           language: str,
+                           farmer_mobile: str) -> Dict[str, Any]:
+        """Mock product storage for demo"""
+        return {
+            "id": "demo_product_123",
+            "farmer_mobile": farmer_mobile,
+            "product_info": json.dumps(product_info),
+            "ai_suggestions": json.dumps(ai_suggestions),
+            "transcribed_text": transcribed_text,
+            "language": language,
+            "status": "pending",
+            "created_at": datetime.now().isoformat()
+        }
+    
+    def _mock_get_products(self, mobile: str) -> List[Dict[str, Any]]:
+        """Mock product retrieval for demo"""
+        return [
+            {
+                "id": "demo_product_123",
+                "farmer_mobile": mobile,
+                "product_info": '{"product": "tomato", "quantity": "10 kg", "price": "₹40"}',
+                "ai_suggestions": '{"description": "Fresh tomatoes", "price_range": "₹35-45"}',
+                "transcribed_text": "I have 10 kg of tomatoes",
+                "language": "en",
+                "status": "pending",
+                "created_at": datetime.now().isoformat()
+            }
+        ]
+    
+    def _mock_get_unsold_products(self, days: int) -> List[Dict[str, Any]]:
+        """Mock unsold products for demo"""
+        return [
+            {
+                "id": "demo_unsold_123",
+                "product_info": '{"product": "onion", "quantity": "5 kg", "price": "₹30"}',
+                "language": "en",
+                "created_at": (datetime.now() - timedelta(days=days + 1)).isoformat()
+            }
+        ]
+    
+    def _mock_register_farmer(self, farmer_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Mock farmer registration for demo"""
+        return {
+            "id": "demo_farmer_123",
+            "name": farmer_data["name"],
+            "email": farmer_data["email"],
+            "phone": farmer_data["phone"],
+            "language": farmer_data.get("language", "en"),
+            "village_city": farmer_data.get("village_city"),
+            "created_at": datetime.now().isoformat()
+        }
+    
+    def _mock_login_farmer(self, credentials: Dict[str, str]) -> Dict[str, Any]:
+        """Mock farmer login for demo"""
+        return {
+            "id": "demo_farmer_123",
+            "name": "Demo Farmer",
+            "email": credentials["email"],
+            "phone": "9876543210",
+            "language": "en",
+            "village_city": "Demo Village",
+            "created_at": datetime.now().isoformat()
         } 

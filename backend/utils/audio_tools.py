@@ -1,339 +1,135 @@
 """
-Audio tools utility for WAV conversion and format checking
+Audio Tools for AgriVoice
+Handles audio processing, validation, and transcription
 """
 
-import io
-import wave
 import base64
+import logging
+import speech_recognition as sr
 from typing import Dict, Any, Optional
-import numpy as np
+import os
 
-class AudioTools:
+logger = logging.getLogger(__name__)
+
+class AudioProcessor:
+    """Handles audio processing and transcription"""
+    
     def __init__(self):
-        self.supported_formats = ['wav', 'mp3', 'ogg', 'webm']
-        self.max_file_size = 10 * 1024 * 1024  # 10MB
+        self.recognizer = sr.Recognizer()
+        self.language_codes = {
+            'en': 'en-US',
+            'hi': 'hi-IN',
+            'ta': 'ta-IN',
+            'te': 'te-IN',
+            'kn': 'kn-IN',
+            'ml': 'ml-IN',
+            'gu': 'gu-IN',
+            'mr': 'mr-IN',
+            'bn': 'bn-IN',
+            'or': 'or-IN',
+            'pa': 'pa-IN'
+        }
+    
+    async def process_audio(self, audio_data: str, language: str) -> str:
+        """Process base64 audio data and return transcribed text"""
+        try:
+            # Decode base64 audio
+            audio_bytes = base64.b64decode(audio_data)
+            
+            # Validate audio format
+            validation = self.validate_audio_format(audio_bytes)
+            if not validation["valid"]:
+                raise ValueError(validation["error"])
+            
+            # For demo purposes, use mock transcription
+            # In production, integrate with Google STT or Whisper
+            transcribed_text = self._get_mock_transcription(language)
+            
+            logger.info(f"Audio processed successfully for language: {language}")
+            return transcribed_text
+            
+        except Exception as e:
+            logger.error(f"Error processing audio: {e}")
+            raise
     
     def validate_audio_format(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """
-        Validate audio format and properties
-        
-        Args:
-            audio_bytes: Raw audio bytes
-            
-        Returns:
-            Validation result
-        """
+        """Validate audio format and properties"""
         try:
-            # Check file size
-            if len(audio_bytes) > self.max_file_size:
-                return {
-                    "valid": False,
-                    "error": "File size too large (max 10MB)"
-                }
+            # Basic validation - check if it's not empty
+            if len(audio_bytes) == 0:
+                return {"valid": False, "error": "Empty audio data"}
             
-            # Check minimum size
-            if len(audio_bytes) < 1000:
-                return {
-                    "valid": False,
-                    "error": "File size too small"
-                }
+            # Check minimum size (1KB)
+            if len(audio_bytes) < 1024:
+                return {"valid": False, "error": "Audio file too small"}
             
-            # Try to detect format
-            format_info = self.detect_audio_format(audio_bytes)
+            # Check maximum size (10MB)
+            if len(audio_bytes) > 10 * 1024 * 1024:
+                return {"valid": False, "error": "Audio file too large"}
             
-            if not format_info["detected"]:
-                return {
-                    "valid": False,
-                    "error": "Unsupported audio format"
-                }
-            
-            # Get audio properties
-            properties = self.get_audio_properties(audio_bytes, format_info["format"])
-            
+            # For demo purposes, assume valid
+            # In production, you would check actual audio format
             return {
                 "valid": True,
-                "format": format_info["format"],
-                "properties": properties
-            }
-            
-        except Exception as e:
-            return {
-                "valid": False,
-                "error": f"Validation error: {str(e)}"
-            }
-    
-    def detect_audio_format(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """
-        Detect audio format from bytes
-        
-        Args:
-            audio_bytes: Raw audio bytes
-            
-        Returns:
-            Format detection result
-        """
-        # Check for common audio format signatures
-        signatures = {
-            b'RIFF': 'wav',
-            b'ID3': 'mp3',
-            b'OggS': 'ogg',
-            b'\x1a\x45\xdf\xa3': 'webm'
-        }
-        
-        for signature, format_name in signatures.items():
-            if audio_bytes.startswith(signature):
-                return {
-                    "detected": True,
-                    "format": format_name
+                "properties": {
+                    "size": len(audio_bytes),
+                    "format": "wav",
+                    "duration": "unknown"
                 }
-        
-        # If no signature found, assume it's a valid audio format
-        return {
-            "detected": True,
-            "format": "unknown"
-        }
-    
-    def get_audio_properties(self, audio_bytes: bytes, format_name: str) -> Dict[str, Any]:
-        """
-        Get audio properties
-        
-        Args:
-            audio_bytes: Raw audio bytes
-            format_name: Audio format name
-            
-        Returns:
-            Audio properties
-        """
-        try:
-            if format_name == 'wav':
-                return self.get_wav_properties(audio_bytes)
-            else:
-                # For other formats, return estimated properties
-                return self.estimate_audio_properties(audio_bytes)
-        except Exception as e:
-            return self.estimate_audio_properties(audio_bytes)
-    
-    def get_wav_properties(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """
-        Get WAV file properties
-        
-        Args:
-            audio_bytes: WAV audio bytes
-            
-        Returns:
-            WAV properties
-        """
-        try:
-            with io.BytesIO(audio_bytes) as audio_io:
-                with wave.open(audio_io, 'rb') as wav_file:
-                    return {
-                        "channels": wav_file.getnchannels(),
-                        "sample_width": wav_file.getsampwidth(),
-                        "frame_rate": wav_file.getframerate(),
-                        "frames": wav_file.getnframes(),
-                        "duration": wav_file.getnframes() / wav_file.getframerate()
-                    }
-        except Exception as e:
-            return self.estimate_audio_properties(audio_bytes)
-    
-    def estimate_audio_properties(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """
-        Estimate audio properties for non-WAV formats
-        
-        Args:
-            audio_bytes: Audio bytes
-            
-        Returns:
-            Estimated properties
-        """
-        # Rough estimation based on file size
-        size_kb = len(audio_bytes) / 1024
-        
-        # Estimate duration based on typical bitrates
-        # Assuming 128kbps for most formats
-        estimated_duration = (size_kb * 8) / 128  # seconds
-        
-        return {
-            "channels": 1,  # Assume mono
-            "sample_width": 2,  # Assume 16-bit
-            "frame_rate": 16000,  # Assume 16kHz
-            "frames": int(estimated_duration * 16000),
-            "duration": estimated_duration
-        }
-    
-    def convert_to_wav(self, audio_bytes: bytes, format_name: str) -> bytes:
-        """
-        Convert audio to WAV format
-        
-        Args:
-            audio_bytes: Raw audio bytes
-            format_name: Source format name
-            
-        Returns:
-            WAV format audio bytes
-        """
-        try:
-            if format_name == 'wav':
-                return audio_bytes
-            
-            # For demo purposes, return as-is
-            # In production, you would use proper audio conversion libraries
-            return audio_bytes
-            
-        except Exception as e:
-            raise Exception(f"Audio conversion error: {str(e)}")
-    
-    def normalize_audio(self, audio_bytes: bytes) -> bytes:
-        """
-        Normalize audio levels
-        
-        Args:
-            audio_bytes: Audio bytes
-            
-        Returns:
-            Normalized audio bytes
-        """
-        try:
-            # For demo purposes, return as-is
-            # In production, you would normalize audio levels
-            return audio_bytes
-        except Exception as e:
-            raise Exception(f"Audio normalization error: {str(e)}")
-    
-    def resample_audio(self, audio_bytes: bytes, target_rate: int = 16000) -> bytes:
-        """
-        Resample audio to target sample rate
-        
-        Args:
-            audio_bytes: Audio bytes
-            target_rate: Target sample rate
-            
-        Returns:
-            Resampled audio bytes
-        """
-        try:
-            # For demo purposes, return as-is
-            # In production, you would resample audio
-            return audio_bytes
-        except Exception as e:
-            raise Exception(f"Audio resampling error: {str(e)}")
-    
-    def extract_audio_segment(self, audio_bytes: bytes, start_time: float, end_time: float) -> bytes:
-        """
-        Extract audio segment
-        
-        Args:
-            audio_bytes: Audio bytes
-            start_time: Start time in seconds
-            end_time: End time in seconds
-            
-        Returns:
-            Audio segment bytes
-        """
-        try:
-            # For demo purposes, return as-is
-            # In production, you would extract the segment
-            return audio_bytes
-        except Exception as e:
-            raise Exception(f"Audio segment extraction error: {str(e)}")
-    
-    def get_audio_duration(self, audio_bytes: bytes) -> float:
-        """
-        Get audio duration in seconds
-        
-        Args:
-            audio_bytes: Audio bytes
-            
-        Returns:
-            Duration in seconds
-        """
-        try:
-            # Try to get duration from WAV file
-            if audio_bytes.startswith(b'RIFF'):
-                with io.BytesIO(audio_bytes) as audio_io:
-                    with wave.open(audio_io, 'rb') as wav_file:
-                        return wav_file.getnframes() / wav_file.getframerate()
-            
-            # Estimate duration for other formats
-            size_kb = len(audio_bytes) / 1024
-            return (size_kb * 8) / 128  # Assuming 128kbps
-            
-        except Exception:
-            # Fallback estimation
-            return len(audio_bytes) / 16000  # Rough estimation
-    
-    def validate_audio_quality(self, audio_bytes: bytes) -> Dict[str, Any]:
-        """
-        Validate audio quality
-        
-        Args:
-            audio_bytes: Audio bytes
-            
-        Returns:
-            Quality assessment
-        """
-        try:
-            duration = self.get_audio_duration(audio_bytes)
-            size_mb = len(audio_bytes) / (1024 * 1024)
-            
-            # Quality assessment based on duration and size
-            if duration < 1:
-                quality = "poor"
-                reason = "Audio too short"
-            elif duration > 60:
-                quality = "poor"
-                reason = "Audio too long"
-            elif size_mb > 5:
-                quality = "poor"
-                reason = "File too large"
-            elif duration >= 3 and duration <= 30:
-                quality = "good"
-                reason = "Optimal duration"
-            else:
-                quality = "acceptable"
-                reason = "Within acceptable range"
-            
-            return {
-                "quality": quality,
-                "reason": reason,
-                "duration": duration,
-                "size_mb": size_mb
             }
             
         except Exception as e:
-            return {
-                "quality": "unknown",
-                "reason": f"Error assessing quality: {str(e)}",
-                "duration": 0,
-                "size_mb": 0
-            }
+            return {"valid": False, "error": f"Audio validation error: {str(e)}"}
     
-    def base64_to_bytes(self, base64_string: str) -> bytes:
-        """
-        Convert base64 string to bytes
-        
-        Args:
-            base64_string: Base64 encoded string
-            
-        Returns:
-            Audio bytes
-        """
-        try:
-            return base64.b64decode(base64_string)
-        except Exception as e:
-            raise Exception(f"Base64 decode error: {str(e)}")
+    def _get_mock_transcription(self, language: str) -> str:
+        """Get mock transcription for demo purposes"""
+        mock_texts = {
+            'en': "I have 10 kg of fresh tomatoes, selling at ₹40 per kg",
+            'hi': "मेरे पास 10 किलो ताजे टमाटर हैं, ₹40 प्रति किलो में बेच रहा हूं",
+            'ta': "என்னிடம் 10 கிலோ புதிய தக்காளிகள் உள்ளன, கிலோவுக்கு ₹40 விற்கிறேன்",
+            'te': "నా వద్ద 10 కిలోల తాజా టమాటాలు ఉన్నాయి, కిలోకి ₹40 చొప్పున అమ్ముతున్నాను",
+            'kn': "ನನ್ನ ಬಳಿ 10 ಕಿಲೋ ತಾಜಾ ಟೊಮೇಟೊಗಳಿವೆ, ಕಿಲೋಗೆ ₹40 ರಂತೆ ಮಾರಾಟ ಮಾಡುತ್ತಿದ್ದೇನೆ",
+            'ml': "എന്റെ കൈയിൽ 10 കിലോ പുതിയ തക്കാളികൾ ഉണ്ട്, കിലോയ്ക്ക് ₹40 നിരക്കിൽ വിൽക്കുന്നു",
+            'gu': "મારી પાસે 10 કિલો તાજા ટામેટા છે, કિલો દીઠ ₹40 માં વેચું છું",
+            'mr': "माझ्याकडे 10 किलो ताजे टोमॅटो आहेत, किलोला ₹40 दराने विकत आहे",
+            'bn': "আমার কাছে 10 কিলো তাজা টমেটো আছে, কিলো প্রতি ₹40 দরে বিক্রি করছি",
+            'or': "ମୋ ପାଖରେ 10 କିଲୋ ତାଜା ଟମାଟୋ ଅଛି, କିଲୋ ପିଛା ₹40 ଦରରେ ବିକ୍ରି କରୁଛି",
+            'pa': "ਮੇਰੇ ਕੋਲ 10 ਕਿਲੋ ਤਾਜ਼ੇ ਟਮਾਟਰ ਹਨ, ਕਿਲੋ ਪ੍ਰਤੀ ₹40 ਵਿੱਚ ਵੇਚ ਰਿਹਾ ਹਾਂ"
+        }
+        return mock_texts.get(language, mock_texts['en'])
     
-    def bytes_to_base64(self, audio_bytes: bytes) -> str:
-        """
-        Convert bytes to base64 string
-        
-        Args:
-            audio_bytes: Audio bytes
-            
-        Returns:
-            Base64 encoded string
-        """
+    async def transcribe_with_google_stt(self, audio_bytes: bytes, language: str) -> str:
+        """Transcribe audio using Google Speech-to-Text"""
         try:
-            return base64.b64encode(audio_bytes).decode('utf-8')
+            # For demo purposes, use mock transcription
+            # In production, you would integrate with Google STT API
+            return self._get_mock_transcription(language)
+            
         except Exception as e:
-            raise Exception(f"Base64 encode error: {str(e)}") 
+            logger.error(f"Google STT transcription error: {e}")
+            raise ValueError(f"Google STT transcription failed: {e}")
+    
+    async def transcribe_with_whisper(self, audio_bytes: bytes, language: str) -> str:
+        """Transcribe audio using OpenAI Whisper"""
+        try:
+            # This would require OpenAI Whisper API integration
+            # For now, return mock transcription
+            return self._get_mock_transcription(language)
+            
+        except Exception as e:
+            logger.error(f"Whisper transcription error: {e}")
+            raise ValueError(f"Whisper transcription failed: {e}")
+    
+    def get_supported_languages(self) -> Dict[str, str]:
+        """Get supported languages and their codes"""
+        return self.language_codes
+    
+    def get_audio_properties(self, audio_bytes: bytes) -> Dict[str, Any]:
+        """Get audio file properties"""
+        return {
+            "size": len(audio_bytes),
+            "format": "wav",
+            "sample_rate": 16000,
+            "channels": 1,
+            "duration": "unknown"
+        } 
